@@ -100,7 +100,7 @@ function buscarMedicos(busqueda, regex) {
 function buscarUsuarios(busqueda, regex) {
 
     return new Promise((resolve, reject) => {
-        Usuario.find({}, 'nombre email role') // El primer parámetro realiza la búsqueda general, el segundo devuelve los campos a mostrar
+        Usuario.find({}, 'nombre email role google') // El primer parámetro realiza la búsqueda general, el segundo devuelve los campos a mostrar
             .or([{ 'nombre': regex }, { 'email': regex }])
             .exec((err, usuarios) => {
                 if (err) {

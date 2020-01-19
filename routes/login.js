@@ -41,66 +41,73 @@ app.post('/google', async(req, res) => {
 
     var googleUser = await verify(token)
         .catch(e => {
-            return res.status(500).json({
+            /*return res.status(500).json({
                 ok: false,
                 mensaje: 'Token incorrecto',
                 errors: e
-            });
+            });*/
+            return;
         });
     console.log("googleUser: ", googleUser);
 
-    Usuario.findOne({ email: googleUser.email }, (err, usuarioDB) => {
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                mensaje: 'Error al registrar usuario de Google',
-                errors: err
-            });
-        }
-        if (usuarioDB) {
-            if (usuarioDB.google === false) {
-                return res.status(400).json({
+    if (googleUser === undefined) {
+        return res.status(403).json({
+            ok: false,
+            mensaje: 'Token no válido'
+        });
+    } else {
+        Usuario.findOne({ email: googleUser.email }, (err, usuarioDB) => {
+            if (err) {
+                return res.status(500).json({
                     ok: false,
-                    mensaje: 'El usuario ya tiene una cuenta en la aplicación'
-                });
-            } else {
-                var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 14400 }); //14400 = 4 horas
-                return res.status(200).json({
-                    ok: true,
-                    mensaje: 'Autenticación correcta',
-                    usuario: usuarioDB,
-                    token: token,
-                    id: usuarioDB._id
+                    mensaje: 'Error al registrar usuario de Google',
+                    errors: err
                 });
             }
-        } else {
-            var usuario = new Usuario();
-            usuario.nombre = googleUser.nombre;
-            usuario.email = googleUser.email;
-            usuario.img = googleUser.img;
-            usuario.google = true;
-            usuario.password = ':)';
-
-
-            usuario.save((err, usuarioDB) => {
-                if (err) {
-                    return res.status(500).json({
+            if (usuarioDB) {
+                if (usuarioDB.google === false) {
+                    return res.status(400).json({
                         ok: false,
-                        mensaje: '¡Ha ocurrido un error al grabar usuario de Google!',
-                        errors: err
+                        mensaje: 'El usuario ya tiene una cuenta en la aplicación'
+                    });
+                } else {
+                    var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 14400 }); //14400 = 4 horas
+                    return res.status(200).json({
+                        ok: true,
+                        mensaje: 'Autenticación correcta',
+                        usuario: usuarioDB,
+                        token: token,
+                        id: usuarioDB._id
                     });
                 }
-                var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 14400 }); //14400 = 4 horas
-                return res.status(200).json({
-                    ok: true,
-                    mensaje: 'Autenticación correcta',
-                    usuario: usuarioDB,
-                    token: token,
-                    id: usuarioDB._id
+            } else {
+                var usuario = new Usuario();
+                usuario.nombre = googleUser.nombre;
+                usuario.email = googleUser.email;
+                usuario.img = googleUser.img;
+                usuario.google = true;
+                usuario.password = ':)';
+
+                usuario.save((err, usuarioDB) => {
+                    if (err) {
+                        return res.status(500).json({
+                            ok: false,
+                            mensaje: '¡Ha ocurrido un error al grabar usuario de Google!',
+                            errors: err
+                        });
+                    }
+                    var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 14400 }); //14400 = 4 horas
+                    return res.status(200).json({
+                        ok: true,
+                        mensaje: 'Autenticación correcta',
+                        usuario: usuarioDB,
+                        token: token,
+                        id: usuarioDB._id
+                    });
                 });
-            });
-        }
-    });
+            }
+        });
+    }
 });
 
 /********************************************* 
